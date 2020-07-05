@@ -109,3 +109,6 @@ venv.bak/
 
 backup*
 pexels_royalty_free_photos*
+
+.DS_Store
+.idea
