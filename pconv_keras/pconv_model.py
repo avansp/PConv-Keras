@@ -13,7 +13,7 @@ from keras.applications import VGG16
 from keras import backend as K
 from keras.utils.multi_gpu_utils import multi_gpu_model
 
-from libs.pconv_layer import PConv2D
+from pconv_keras.pconv_layer import PConv2D
 
 
 class PConvUnet(object):

@@ -18,8 +18,8 @@ from keras_tqdm import TQDMCallback
 import matplotlib.pyplot as plt
 from matplotlib.ticker import NullFormatter
 
-from libs.pconv_model import PConvUnet
-from libs.util import MaskGenerator
+from pconv_keras.pconv_model import PConvUnet
+from pconv_keras.util import MaskGenerator
 
 
 # Sample call
