@@ -1,32 +1,27 @@
 from keras.preprocessing.image import ImageDataGenerator
+import gc
+import numpy as np
+from copy import deepcopy
 
 
 class AugmentingDataGenerator(ImageDataGenerator):
-    def flow_from_dataframe(self, csv_file, folder, *args, **kwargs):
-        generator = super().flow_from_dataframe(
-            csv_file,
-            directory=folder,
-            x_col='files',
-            class_mode=None,
-            *args, ** kwargs
-        )
-        while True:
-            # get augmented image samples
-            ori = next(generator)
+    def __init__(self, *args, **kwargs):
+        super(AugmentingDataGenerator, self).__init__(*args, **kwargs)
+        self.generator = None
+        self.mask_generator = None
 
-            # yield
-            yield ori
+    def generate(self, *args, **kwargs):
+        assert self.generator is not None, "Please set the generator first."
+        assert self.mask_generator is not None, "Please set the mask generator first."
 
-    def flow_from_directory(self, directory, mask_generator, *args, **kwargs):
-        generator = super().flow_from_directory(directory, class_mode=None, *args, **kwargs)
         seed = None if 'seed' not in kwargs else kwargs['seed']
         while True:
             # Get augmentend image samples
-            ori = next(generator)
+            ori = next(self.generator)
 
             # Get masks for each image sample
             mask = np.stack([
-                mask_generator.sample(seed)
+                self.mask_generator.sample(seed)
                 for _ in range(ori.shape[0])], axis=0
             )
 
@@ -38,3 +33,13 @@ class AugmentingDataGenerator(ImageDataGenerator):
             # print(masked.shape, ori.shape)
             gc.collect()
             yield [masked, mask], ori
+
+    def flow_from_dataframe(self, df, mask_generator, folder=None, *args, **kwargs):
+        self.generator = super().flow_from_dataframe(df, directory=folder, class_mode=None, *args, **kwargs)
+        self.mask_generator = mask_generator
+        return self.generate(*args, **kwargs)
+
+    def flow_from_directory(self, directory, mask_generator, *args, **kwargs):
+        generator = super().flow_from_directory(directory, class_mode=None, *args, **kwargs)
+        self.mask_generator = mask_generator
+        return self.generate(*args, **kwargs)
